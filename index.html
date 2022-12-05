@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset = "UTF-8">
+        <meta http-equiv = "X-UA-Compatible" content = "IE=edge">
+        <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+        <title> Fetching Data from a Server with JavaScript </title>
+    </head>
+
+    <body>
+        <button id = "getData">Get data</button>                                                <!-- id's "getData" and "getList" have to be exactly the same as in the tutprial, prolly cos the API was built already and we're using an existing one ?-->
+        <button id = "getList">Get list</button>
+
+        <br><br>
+
+        <form id = "myForm">                                                                    <!-- "myForm" is must be exactly the same -->
+            <input type = "text" name = "firstname" id = "firstname" value = "Firstname">
+            <input type = "text" name = "lastname" id = "lastname" value = "Lastname">
+
+            <br>
+
+            <button id = "submitForm">Submit</button>
+        </form>
+
+        <p id = "posts"></p>
+        <p id = "message"></p>
+        <p id = "greeting"></p>
+
+        <script>
+            document.getElementById("getData").addEventListener('click', getData);              /* event listener for the get data button i.e. click */
+            document.getElementById("getList").addEventListener('click', getList);              /* event listener for the get list button i.e. click */
+            document.getElementById("submitForm").addEventListener('click', submitForm);        /* event listener for the submitForm button i.e. when user clicks on the button with the id "submitForm" apply the func submitForm created below */
+
+            function getData(){             
+                /* call the server using the fetch() JS func */
+                fetch('https://mysite.itvarsity.org/api/fetch/get-data/')                       /* fetch() func will call the server (i.e. the ITV fetch API) and makes a request to the server, and the server sends back a response, which is given in the form of an object & not in the form of text that can be outputted to your screen. The response stored in the obj 1st needs to be converted to text, and then output that text to our screen */
+                    .then(function(response){                                                   /* anonymous callback func: a func w.o. a name */
+                    return response.text();                                                     /* so the fetch func will request something from the ITV API server, and will return a response, which is stored in an obj (i.e. "repsponse" obj) the response is then passed to an anonymous func, which is passed the param "response", which is then returned as text */
+                })  
+                .then(function(data){                                                           /* the converted text from the response param is then passed to another anon func and then passed the param "data", which is then displayed in the para with the "message" id */
+                    document.getElementById("message").innerHTML = data;
+                })                                                           
+            }
+
+            function getList(){
+                fetch('https://mysite.itvarsity.org/api/fetch/get-list/')                        /* NB: the fetch API won't work if you don't end the link with a forward slash/ */
+                .then(function(response){
+                    return response.json();                                                      /* unlike the fetch API for get data, we want to return the object in a json array (cos its a list) instead of as simple text */
+                })
+                .then(function(data){                                                            /* where "data" is the response that the json extracted from the object that was fetched i.e. we store our json array in the var "data" */
+                    var output = "<h1>Posts</h1>";                                               /* before we can display our list items, we need to iterate through the json array & unpack its contents i.e. sort it */
+
+                    for(a = 0; a < data.length; a++){                                            /* we iterate through the json array using the for() func */
+                        /* must have += after output to ensure that all items in our array aprps, and not just the last item (after posts 1 and 2 are run, it only displays posts 3 in the browser cos its last and thus overrides prior list items. Adding the plus sign before the = sign ensures that following items are ADDED and not simply replaced by following list items */
+                        output += `                                                               
+                            <ul>
+                                <li><h2>${data[a][0]}</h2></li>
+                                <li><b>${data[a][1]}</b></li>
+                                <li>${data[a][2]}</li>
+                            </ul>
+                            `
+                    }
+                    document.getElementById("posts").innerHTML = output;                          /* specify where the output of the getList fetch API must appear i.e. in the element with the "posts" id */
+                })
+            }
+
+            function submitForm(e){                                                               /* we pass the func the param "e" from JS */
+                e.preventDefault();                                                               /* prev's the form from carrying out its default behav i.e. when you click the submit button, the form reloads the page to the orig form/reloads page (aka default behaviour). instead we want the form to remain as is while the code is beiong run  */
+
+                form = new FormData(document.querySelector("#myForm"));                           /* we create a new form data obj that contains all the info that the user input into the form, and we'll take our form created above with the id "myForm" and place it into the new form data obj i.e. whatev the user inputs into myForm data fields will be placed inside the data obj created here "form". This JS API allows us to collect data from our form w.o. having to specify each data field by their id. We'll take the "form" obj & send it to the server */
+
+                fetch('https://mysite.itvarsity.org/api/fetch/send-data/', {                      /* we use the fetch() func to send the packaged data (i.e. the "form" obj user's input) to the server. takes two param's: a url string ('') where the data must be sent to i.e. the server, and a code block ({}), which contains the 3 vals: method, header, body  */
+                    method: 'POST',
+                    headers: {'Accept': 'application/json, */*'},                                 /* Accept all (as denoted by astrix-slash-astrix) types of headers */
+                    body: form
+                })        
+                .then(function(response){
+                    return response.text();
+                })      
+                .then(function(data){
+                    document.getElementById("greeting").innerHTML = data;
+                })                                                       
+            }
+
+
+
+
+        </script>
+
+    </body>
+</html>
